@@ -78,17 +78,19 @@ function initDragAndDrop() {
             const files = dt.files;
             if (files.length > 0) {
                 input.files = files; // Sync input
-                handleUploadedFile(files[0], zone);
+                // Fire change event so the input listener and active file variables sync correctly
+                input.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
     });
 }
 
 function handleUploadedFile(file, zone) {
-    const previewImg = zone.parentElement.querySelector('.img-preview-target');
-    const previewContainer = zone.parentElement.querySelector('.preview-wrapper');
-    const infoTag = zone.parentElement.querySelector('.image-info-tag');
+    const previewImg = document.querySelector('.img-preview-target');
+    const previewContainer = document.querySelector('.preview-wrapper');
+    const infoTag = document.querySelector('.image-info-tag');
     const uploadPrompt = zone.querySelector('.upload-prompt');
+    const placeholders = document.querySelectorAll('#cover-placeholder, #stego-placeholder');
     
     if (!file.type.match('image.*')) {
         alert('Please upload an image file (PNG, JPG, BMP, etc.).');
@@ -102,6 +104,10 @@ function handleUploadedFile(file, zone) {
             previewImg.style.display = 'block';
         }
         if (previewContainer) previewContainer.style.display = 'flex';
+        
+        // Hide initial placeholders
+        placeholders.forEach(p => p.style.display = 'none');
+        
         if (uploadPrompt) {
             uploadPrompt.innerHTML = `<strong>Selected:</strong> ${file.name}<br><span class="text-secondary">Click or drag a new image to replace</span>`;
         }
