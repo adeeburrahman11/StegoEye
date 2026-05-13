@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Extract Payload | StegoEye - Advanced Image Steganography{% endblock %}
+
+{% block header %}
+<h1 class="page-title">Extract Secret Payload</h1>
+<p class="page-subtitle">Scan and extract hidden messages from Least Significant Bit (LSB) arrays</p>
+{% endblock %}
+
+{% block content %}
+<div class="preview-container">
+    <!-- Decoding Form Card -->
+    <div class="glass-card">
+        <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff;">Extraction Terminal</h3>
+        
+        <form id="decode-form" method="POST" enctype="multipart/form-data">
+            <!-- Image Upload Zone -->
+            <div class="form-group">
+                <label class="form-label">Stego Image (Source)</label>
+                <div class="upload-zone" id="decode-upload-zone">
+                    <input type="file" id="image-upload" name="image" class="file-input" accept="image/png, image/bmp" required>
+                    <div class="upload-prompt">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                        </svg>
+                        <p class="upload-title">Drag & Drop Stego Image</p>
+                        <p class="upload-subtitle">PNG or BMP stego files created using StegoEye</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload metadata display -->
+            <div class="text-center" style="margin-bottom: 1.5rem; text-align: center;">
+                <span class="image-info-tag" id="stego-info-tag" style="display: none;"></span>
+            </div>
+
+            <!-- Initially hidden password form (Revealed dynamically via JS on code request) -->
+            <div class="form-group" id="password-reveal-group" style="display: none; margin-bottom: 2rem;">
+                <label class="form-label" for="decryption-password" style="color: var(--accent-violet);">
+                    🔑 Decryption Key Required
+                </label>
+                <input type="password" id="decryption-password" name="password" class="form-input" style="border-color: rgba(155, 81, 224, 0.3);" placeholder="Supply the secure password to decrypt this payload...">
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">
+                    This steganographic payload is encrypted. Supply the password to run PBKDF2 stretching and AES-CTR decryption.
+                </p>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-magenta" style="width: 100%;">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor;">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+                </svg>
+                Extract Hidden Message
+            </button>
+        </form>
+    </div>
+
+    <!-- Live Preview Display -->
+    <div class="glass-card flex-center" style="display: flex; flex-direction: column;">
+        <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff; align-self: flex-start;">Stego Preview</h3>
+        <div class="preview-wrapper" style="width: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;">
+            <div class="preview-box" style="width: 100%;">
+                <img id="stego-preview-img" class="preview-image img-preview-target" style="display: none; max-height: 350px;">
+            </div>
+        </div>
+        <div id="stego-placeholder" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 64px; height: 64px; fill: var(--text-muted); margin-bottom: 1rem; opacity: 0.3;">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z"/>
+            </svg>
+            <p>Upload a stego image to see its visual preview here</p>
+        </div>
+    </div>
+</div>
+
+<!-- Output Succeeded Area (Fades in) -->
+<div id="decode-result-box" class="glass-card" style="display: none; margin-top: 3rem;">
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1rem; padding: 1rem 0;">
+        <div id="decode-alert-text" class="severity-banner banner-success">🔓 SECURE PAYLOAD DECODED SUCCESSFULLY!</div>
+        
+        <div id="message-output-box" style="width: 100%; display: none; margin-top: 1rem;">
+            <h3 class="card-title" style="margin-bottom: 1rem; align-self: flex-start;">Extracted Payload</h3>
+            
+            <div class="form-group" style="text-align: left;">
+                <textarea id="extracted-secret-message" class="form-textarea" style="background: rgba(0, 0, 0, 0.4); font-family: monospace; font-size: 1rem; line-height: 1.5; min-height: 150px; border-color: rgba(0, 242, 254, 0.2);" readonly></textarea>
+            </div>
+
+            <button type="button" id="copy-text-btn" class="btn btn-secondary" style="margin-top: 0.5rem;">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor;">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                </svg>
+                Copy to Clipboard
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Copy extracted text function
+    const copyBtn = document.getElementById('copy-text-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const textarea = document.getElementById('extracted-secret-message');
+            textarea.select();
+            document.execCommand('copy');
+            
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: var(--status-success);">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                Copied Successfully!
+            `;
+            copyBtn.style.borderColor = 'var(--status-success)';
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.style.borderColor = 'var(--border-glass)';
+            }, 2000);
+        });
+    }
+</script>
+{% endblock %}

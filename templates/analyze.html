@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Steganalysis Suite | StegoEye - Advanced Image Steganography Detection{% endblock %}
+
+{% block header %}
+<h1 class="page-title">Steganalysis Suite</h1>
+<p class="page-subtitle">Perform multi-dimensional statistical scans, header inspections, and bit-slicing visualization</p>
+{% endblock %}
+
+{% block content %}
+<div class="card-grid" style="grid-template-columns: 1fr; margin-bottom: 3rem;">
+    <!-- Upload Scanner Card -->
+    <div class="glass-card">
+        <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff;">Threat Vector Scan</h3>
+        
+        <form id="analyze-form" method="POST" enctype="multipart/form-data">
+            <!-- Image Upload Zone -->
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <div class="upload-zone" id="analyze-upload-zone">
+                    <input type="file" id="image-upload" name="image" class="file-input" accept="image/png, image/jpeg, image/bmp" required>
+                    <div class="upload-prompt">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                        </svg>
+                        <p class="upload-title">Upload Suspicious Image for Analysis</p>
+                        <p class="upload-subtitle">Drag-and-drop any PNG, JPG, or BMP file to execute security diagnostics</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor;">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                Run Diagnostics Scans
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- DIAGNOSTICS RESULTS SYSTEM (Fades in via JS) -->
+<div id="analysis-results-box" style="display: none;">
+    
+    <!-- Row 1: Threat Score Gauge & Metadata Details -->
+    <div class="preview-container" style="margin-bottom: 2rem;">
+        
+        <!-- Threat Gauge Card -->
+        <div class="glass-card threat-gauge-container" data-severity="success" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 2rem;">
+            <div id="analysis-severity-banner" class="severity-banner banner-success">SAFE / NO SIGNATURE</div>
+            
+            <div class="threat-analyzer">
+                <div class="gauge-wrapper">
+                    <svg class="gauge-svg" width="200" height="200" viewBox="0 0 200 200">
+                        <circle class="gauge-bg" cx="100" cy="100" r="90"></circle>
+                        <circle class="gauge-fill" cx="100" cy="100" r="90"></circle>
+                    </svg>
+                    <div class="gauge-text">
+                        <span class="gauge-value">0%</span>
+                        <span class="gauge-label">Threat Score</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width: 100%;">
+                <h4 style="font-size: 1rem; color: #ffffff; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">Threat Logs</h4>
+                <ul id="analysis-reasons-list" class="reasons-list">
+                    <!-- Dynamic reasons populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Metadata Properties Card -->
+        <div class="glass-card" style="display: flex; flex-direction: column;">
+            <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff;">Image Structural Metadata</h3>
+            
+            <div style="flex-grow: 1;">
+                <table class="meta-table" style="margin-bottom: 1.5rem;">
+                    <tbody>
+                        <tr>
+                            <td class="label">Filename</td>
+                            <td id="meta-filename" class="value">-</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Format</td>
+                            <td id="meta-format" class="value">-</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Resolution</td>
+                            <td id="meta-resolution" class="value">-</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Physical File Size</td>
+                            <td id="meta-filesize" class="value">-</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Uncompressed Raw Pixels</td>
+                            <td id="meta-pixelbytes" class="value">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="font-size: 1rem; color: #ffffff; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem;">EXIF Fields</h4>
+                <div style="max-height: 180px; overflow-y: auto; padding-right: 0.5rem;">
+                    <table class="meta-table">
+                        <tbody id="meta-exif-list">
+                            <!-- EXIF elements populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: EOF Trailing Bytes Report (Conditional Card, displayed if found) -->
+    <div id="trailing-bytes-section" class="glass-card" style="display: none; margin-bottom: 2rem; border-color: var(--status-danger);">
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 class="card-title" style="color: var(--status-danger); margin-bottom: 0.25rem;">⚠️ Trailing Appended Bytes Detected</h3>
+                    <p class="card-desc" style="margin-bottom: 0;">Extra binary trailing bytes were found appended after the natural End-Of-File boundary marker.</p>
+                </div>
+                <div>
+                    <span id="tb-length" class="severity-banner banner-danger">0 Bytes</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                <!-- HEX View -->
+                <div>
+                    <h4 class="form-label" style="color: var(--text-secondary); margin-bottom: 0.5rem;">HEX Dump Preview (First 64 Bytes)</h4>
+                    <div id="tb-hex" class="code-block" style="color: var(--accent-magenta);"></div>
+                </div>
+                <!-- ASCII View -->
+                <div>
+                    <h4 class="form-label" style="color: var(--text-secondary); margin-bottom: 0.5rem;">ASCII Readable Preview</h4>
+                    <div id="tb-text" class="code-block" style="color: var(--accent-cyan); font-family: 'Courier New', Courier, monospace;"></div>
+                </div>
+            </div>
+
+            <div style="align-self: flex-start; margin-top: 0.5rem;">
+                <a id="download-tb-btn" href="#" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor; margin-right: 0.5rem;">
+                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+                    </svg>
+                    Extract Appended Payload file (.bin)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Interactive Bit Plane Explorer (Core Steganalysis Interface) -->
+    <div class="glass-card" style="margin-bottom: 3rem;">
+        <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff;">Interactive Bit-Slicing Visualizer</h3>
+        
+        <div class="preview-container" style="grid-template-columns: 1fr;">
+            <!-- Outer grid container to arrange slider details and image box side by side -->
+            <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; width: 100%;">
+                
+                <!-- Left Details & Controls Panel -->
+                <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
+                    <div>
+                        <p class="card-desc" style="margin-bottom: 1.5rem;">
+                            Bit-slicing breaks down color depths into single-bit binary planes. Natural textures contain gradients that resolve as structural silhouettes in low-order bits. Conversely, a steganographic LSB payload will appear as uniform, high-entropy random pixel noise (like white-noise TV static) localized to the coordinate indices where data was embedded.
+                        </p>
+                        
+                        <!-- Interactive Slider -->
+                        <label class="form-label">Bit Depth Selector</label>
+                        <div class="slider-container">
+                            <input type="range" id="plane-depth-slider" class="depth-slider" min="0" max="7" value="0">
+                            <span id="slider-depth-val" class="slider-val">Bit 0 (LSB)</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabs & Visualization container -->
+                    <div class="tab-container">
+                        <div class="tab-nav bitplane-tabs">
+                            <button class="tab-btn active" data-channel="Red">Red Channel</button>
+                            <button class="tab-btn" data-channel="Green">Green Channel</button>
+                            <button class="tab-btn" data-channel="Blue">Blue Channel</button>
+                        </div>
+
+                        <!-- Panel view outputs -->
+                        <div class="bitplane-panes" style="display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.4); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-glass); min-height: 400px;">
+                            
+                            <!-- Red Channel Pane -->
+                            <div id="pane-red" class="tab-pane active" style="width: 100%; text-align: center;">
+                                <img id="bitplane-viewer-r" class="preview-image" style="max-height: 380px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.15));">
+                            </div>
+
+                            <!-- Green Channel Pane -->
+                            <div id="pane-green" class="tab-pane" style="width: 100%; text-align: center;">
+                                <img id="bitplane-viewer-g" class="preview-image" style="max-height: 380px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.1));">
+                            </div>
+
+                            <!-- Blue Channel Pane -->
+                            <div id="pane-blue" class="tab-pane" style="width: 100%; text-align: center;">
+                                <img id="bitplane-viewer-b" class="preview-image" style="max-height: 380px; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.1));">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

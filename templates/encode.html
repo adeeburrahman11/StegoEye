@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Hide Message | StegoEye - Advanced Image Steganography{% endblock %}
+
+{% block header %}
+<h1 class="page-title">Hide Secret Payload</h1>
+<p class="page-subtitle">Embed secure, encrypted messages within image pixel arrays losslessly</p>
+{% endblock %}
+
+{% block content %}
+<div class="preview-container">
+    <!-- Form Inputs Card -->
+    <div class="glass-card">
+        <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff;">Configuration Parameters</h3>
+        
+        <form id="encode-form" method="POST" enctype="multipart/form-data">
+            <!-- Image Upload Zone -->
+            <div class="form-group">
+                <label class="form-label">Cover Image (Source)</label>
+                <div class="upload-zone" id="encode-upload-zone">
+                    <input type="file" id="image-upload" name="image" class="file-input" accept="image/png, image/jpeg, image/bmp" required>
+                    <div class="upload-prompt">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                        </svg>
+                        <p class="upload-title">Drag & Drop Cover Image</p>
+                        <p class="upload-subtitle">Supports lossless PNG, JPG, or BMP formats up to 16MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pre-upload Image Info / Size tag -->
+            <div class="text-center" style="margin-bottom: 1.5rem; text-align: center;">
+                <span class="image-info-tag" id="cover-info-tag" style="display: none;"></span>
+            </div>
+
+            <!-- Secret Message Text Area -->
+            <div class="form-group">
+                <label class="form-label" for="secret-message">Secret Payload</label>
+                <textarea id="secret-message" name="message" class="form-textarea" placeholder="Type your secret confidential message, credentials, or keys here..." required></textarea>
+            </div>
+
+            <!-- Optional Encryption Password -->
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label class="form-label" for="encryption-password">
+                    Decryption Password <span class="text-secondary" style="font-size: 0.75rem; font-weight: normal; margin-left: 0.5rem;">(Optional)</span>
+                </label>
+                <input type="password" id="encryption-password" name="password" class="form-input" placeholder="Supply a security password for SHA256-CTR encryption...">
+                <div style="margin-top: 0.5rem; display: flex; gap: 0.4rem;">
+                    <span class="badge badge-cyan">Custom PBKDF2 KDF</span>
+                    <span class="badge badge-violet">Salted Random IV</span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor;">
+                    <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                </svg>
+                Encode & Encrypt Payload
+            </button>
+        </form>
+    </div>
+
+    <!-- Live Preview Display -->
+    <div class="glass-card flex-center" style="display: flex; flex-direction: column;">
+        <h3 class="card-title" style="margin-bottom: 1.5rem; color: #ffffff; align-self: flex-start;">Cover Preview</h3>
+        <div class="preview-wrapper" style="width: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1;">
+            <div class="preview-box" style="width: 100%;">
+                <img id="cover-preview-img" class="preview-image img-preview-target" style="display: none; max-height: 350px;">
+            </div>
+        </div>
+        <div id="cover-placeholder" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 64px; height: 64px; fill: var(--text-muted); margin-bottom: 1rem; opacity: 0.3;">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z"/>
+            </svg>
+            <p>Upload a cover image to see its visual preview here</p>
+        </div>
+    </div>
+</div>
+
+<!-- Output Succeeded Area (Fades in) -->
+<div id="encode-result-box" class="glass-card" style="display: none; margin-top: 3rem; border-color: rgba(0, 242, 254, 0.4);">
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1.5rem; padding: 1.5rem 0;">
+        <div class="severity-banner banner-success">🔒 ENCODING COMPLETE! SECRET EMBEDDED LOSSLESSLY</div>
+        <h3 class="card-title" style="font-size: 1.5rem;">Compiled Stego Image Ready</h3>
+        <p class="card-desc" style="max-width: 600px;">
+            The secret message has been packed into the LSB matrix of the pixel array. The differences are mathematically invisible to the naked eye. Please download the lossless image file below:
+        </p>
+        
+        <div class="preview-box" style="max-width: 500px; width: 100%; margin-bottom: 1.5rem;">
+            <img id="stego-output-image" class="preview-image" style="max-height: 300px;">
+        </div>
+
+        <a id="download-stego-btn" href="#" class="btn btn-primary btn-magenta">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px; fill: currentColor;">
+                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+            </svg>
+            Download Lossless Stego PNG
+        </a>
+    </div>
+</div>
+{% endblock %}

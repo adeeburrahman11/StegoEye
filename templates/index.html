@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | StegoEye - Advanced Image Steganography Detection{% endblock %}
+
+{% block header %}
+<h1 class="page-title">StegoEye Terminal</h1>
+<p class="page-subtitle">Security Suite for Image Cryptography & Visual Steganalysis</p>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Interactive Intro -->
+<section class="hero-section">
+    <div class="hero-text">
+        <h2 class="hero-title">Uncover the Invisible.</h2>
+        <p class="hero-desc">
+            StegoEye is a state-of-the-art security suite designed to hide secret payloads using lossless pixel manipulation and identify hidden data inside files using advanced statistical and structural steganalysis.
+        </p>
+        <div class="badge-group" style="margin-bottom: 2rem;">
+            <span class="badge badge-cyan">Lossless LSB Encoding</span>
+            <span class="badge badge-violet">SHA256 CTR Stream Cipher</span>
+            <span class="badge badge-cyan">Wilson-Hilferty Chi-Square Test</span>
+            <span class="badge badge-violet">Interactive Bit Slicing</span>
+        </div>
+        <a href="{{ url_for('analyze') }}" class="btn btn-primary">Launch Steganalysis Suite</a>
+    </div>
+    <div class="hero-image">
+        <div class="hero-canvas-animation"></div>
+    </div>
+</section>
+
+<!-- Action cards grid -->
+<h3 style="margin-bottom: 1.5rem; font-family: var(--font-heading); font-size: 1.5rem;">System Modules</h3>
+<div class="card-grid">
+    <!-- Card 1: Hide -->
+    <div class="glass-card">
+        <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+        </div>
+        <h4 class="card-title">Hide Payload</h4>
+        <p class="card-desc">
+            Inject secret text or token payloads directly into the Least Significant Bits (LSB) of cover images. Enable SHA256-CTR salt-strengthened key-derivation encryption for absolute secrecy.
+        </p>
+        <a href="{{ url_for('encode') }}" class="card-link">Encode Message &rarr;</a>
+    </div>
+
+    <!-- Card 2: Extract -->
+    <div class="glass-card accent-violet">
+        <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
+            </svg>
+        </div>
+        <h4 class="card-title">Extract Payload</h4>
+        <p class="card-desc">
+            Reconstruct LSB streams and extract binary signatures. Supply salt decryption keys to decrypt highly secured payloads and reveal the hidden text instantaneously in the terminal.
+        </p>
+        <a href="{{ url_for('decode') }}" class="card-link">Decode Message &rarr;</a>
+    </div>
+
+    <!-- Card 3: Analyze -->
+    <div class="glass-card accent-magenta">
+        <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+        </div>
+        <h4 class="card-title">Steganalysis Suite</h4>
+        <p class="card-desc">
+            Deploy mathematical algorithms to scan files for hidden steganography. Runs EOF appendage tests, outputs 3D pixel histograms, and executes advanced Chi-Square probability checks.
+        </p>
+        <a href="{{ url_for('analyze') }}" class="card-link">Analyze Image &rarr;</a>
+    </div>
+</div>
+
+<!-- Explanatory Technical Section -->
+<section class="glass-card" style="margin-bottom: 2rem;">
+    <h3 style="font-family: var(--font-heading); margin-bottom: 1rem; color: #ffffff;">How Does Detection Work?</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+        <div>
+            <h4 style="color: var(--accent-cyan); margin-bottom: 0.5rem; font-size: 1.05rem;">1. EOF Appendage Checks</h4>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Many amateur steganography tools simply append files or bytes to the literal end-of-file marker of JPEGs (<code>FFD9</code>) or PNGs (<code>IEND</code>). StegoEye scans binary headers to immediately flag trail data and provides full byte extraction downloads.
+            </p>
+        </div>
+        <div>
+            <h4 style="color: var(--accent-violet); margin-bottom: 0.5rem; font-size: 1.05rem;">2. Wilson-Hilferty Chi-Square Test</h4>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Natural colors vary gradually, but LSB randomizations equalize neighboring pixel values. We compute Chi-Square values across 128 Color Pairs (PoVs) and map them using Wilson-Hilferty normal distribution formulas to generate a precise steganography threat percentage.
+            </p>
+        </div>
+        <div>
+            <h4 style="color: var(--accent-magenta); margin-bottom: 0.5rem; font-size: 1.05rem;">3. Interactive Bit-Slicing</h4>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                By slicing the image into single-bit dimensions, we can isolate and render hidden patterns in the lower bit planes (LSBs) that are invisible to human sight. Random steganography stands out as sharp, uniformly dense static noise against structural objects.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
